@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -41,6 +42,8 @@ public class Course {
     @Column(nullable = false)
     private UUID userInstructor;
 
+    @OneToMany(mappedBy = "course")
+    private List<Module> modules;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "created_at", nullable = false)
@@ -62,6 +65,5 @@ public class Course {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
 
 }

@@ -29,6 +29,10 @@ public class Lesson {
     @Column(nullable = false)
     private String videoUrl;
 
+    @ManyToOne(optional = false)
+    @JoinColumn( name = "module_id")
+    private Module module;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "created_at", nullable = false)
     @Setter(AccessLevel.NONE)
