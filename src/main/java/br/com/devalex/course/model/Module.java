@@ -4,6 +4,10 @@ package br.com.devalex.course.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,11 +32,13 @@ public class Module {
     @Column(nullable = false)
     private String description;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Course course;
 
-    @OneToMany(mappedBy = "module")
+    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Lesson> lessons;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")

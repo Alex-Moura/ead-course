@@ -3,6 +3,8 @@ package br.com.devalex.course.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -31,6 +33,7 @@ public class Lesson {
 
     @ManyToOne(optional = false)
     @JoinColumn( name = "module_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Module module;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
