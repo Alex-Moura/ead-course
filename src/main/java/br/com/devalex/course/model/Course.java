@@ -32,6 +32,7 @@ public class Course {
 
     @Column(nullable = false)
     private String description;
+
     private String imgUrl;
 
     @Enumerated(EnumType.STRING)

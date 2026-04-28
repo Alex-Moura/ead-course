@@ -1,7 +1,7 @@
 package br.com.devalex.course.enums;
 
 public enum CourseLevel {
-    BEGINENR,
+    BEGINNER,
     INTERMEDIARY,
     ADVANCED
 }
