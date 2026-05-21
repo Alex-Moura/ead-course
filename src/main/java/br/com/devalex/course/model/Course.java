@@ -56,7 +56,7 @@ public class Course {
     @Setter(AccessLevel.NONE)
     private LocalDateTime createdAt;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy   HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "updated_at", nullable = false)
     @Setter(AccessLevel.NONE)
     private LocalDateTime updatedAt;

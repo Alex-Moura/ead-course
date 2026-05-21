@@ -29,7 +29,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void delete(UUID id) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResolutionException("Curso com id: " + id + " não encotrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encotrado"));
         courseRepository.delete(course);
     }
 

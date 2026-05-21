@@ -29,7 +29,7 @@ public record CourseRequestDTO(
         @NotNull(message = "Instrutor do curso é obrigatorio")
         UUID userInstructor,
 
-        @NotNull(message = "descrição é obrigatorio")
+        @NotBlank(message = "Descrição é obrigatória")
         String description
 ) {
 }
