@@ -1,6 +1,7 @@
 package br.com.devalex.course.dtos.module;
 
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
+import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
 import br.com.devalex.course.model.Course;
 import br.com.devalex.course.model.Lesson;
 
@@ -13,7 +14,7 @@ public record ModuleResponseDTO(
         String title,
         String description,
         CourseResponseDTO course,
-        List<Lesson> lessons,
+        List<LessonResponseDTO> lessons,
         LocalDateTime createdAt
 ) {
 }
