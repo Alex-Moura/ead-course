@@ -36,4 +36,11 @@ public class LessonController {
     public ResponseEntity<List<LessonResponseDTO>> findAllByModuleId(@PathVariable UUID moduleId){
         return ResponseEntity.ok(lessonService.findAllByModuleId(moduleId));
     }
+
+    @PutMapping("/{lessonId}")
+    public ResponseEntity<LessonResponseDTO> update(@PathVariable UUID lessonId,
+                                                    @PathVariable UUID moduleId,
+                                                    @RequestBody @Valid LessonRequestDTO dto){
+        return ResponseEntity.ok(lessonService.update(lessonId, moduleId, dto));
+    }
 }

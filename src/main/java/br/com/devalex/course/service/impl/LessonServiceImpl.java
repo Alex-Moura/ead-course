@@ -2,6 +2,7 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
 import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
+import br.com.devalex.course.dtos.module.ModuleResponseDTO;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.LessonMapper;
 import br.com.devalex.course.model.Lesson;
@@ -41,7 +42,19 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public List<LessonResponseDTO> findAllByModuleId(UUID moduleId) {
+        if (!moduleRepository.existsById(moduleId)) {
+            throw new ResourceNotFoundException("Modulo não encontrado");
+        }
+
         List<Lesson> lessons = lessonRepository.findAllByModuleId(moduleId);
         return lessonMapper.toDTOList(lessons);
+    }
+
+    @Override
+    public LessonResponseDTO update(UUID lessonId, UUID moduleId, LessonRequestDTO dto) {
+        Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lição não encontrada para esse módulo"));
+        lessonMapper.updateLessonFromDTO(dto, lesson);
+        return lessonMapper.toDTO(lessonRepository.save(lesson));
     }
 }
