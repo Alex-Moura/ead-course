@@ -30,4 +30,11 @@ public class LessonServiceImpl implements LessonService {
         lesson.setModule(module);
         return lessonMapper.toDTO(lessonRepository.save(lesson));
     }
+
+    @Override
+    public LessonResponseDTO findById(UUID lessonId, UUID moduleId) {
+        Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lição não encontrada para esse módulo"));
+        return lessonMapper.toDTO(lesson);
+    }
 }

@@ -6,7 +6,6 @@ import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
 import br.com.devalex.course.service.LessonService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,5 +23,11 @@ public class LessonController {
     public ResponseEntity<LessonResponseDTO> save(@PathVariable UUID moduleId,
                                                   @RequestBody @Valid LessonRequestDTO dto){
        return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.save(dto, moduleId));
+    }
+
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<LessonResponseDTO> findById(@PathVariable UUID lessonId,
+                                                      @PathVariable UUID moduleId){
+        return ResponseEntity.ok(lessonService.findById(lessonId, moduleId));
     }
 }
