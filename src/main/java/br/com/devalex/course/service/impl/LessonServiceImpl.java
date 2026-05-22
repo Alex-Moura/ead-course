@@ -12,6 +12,7 @@ import br.com.devalex.course.service.LessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -36,5 +37,11 @@ public class LessonServiceImpl implements LessonService {
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Lição não encontrada para esse módulo"));
         return lessonMapper.toDTO(lesson);
+    }
+
+    @Override
+    public List<LessonResponseDTO> findAllByModuleId(UUID moduleId) {
+        List<Lesson> lessons = lessonRepository.findAllByModuleId(moduleId);
+        return lessonMapper.toDTOList(lessons);
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -29,5 +30,10 @@ public class LessonController {
     public ResponseEntity<LessonResponseDTO> findById(@PathVariable UUID lessonId,
                                                       @PathVariable UUID moduleId){
         return ResponseEntity.ok(lessonService.findById(lessonId, moduleId));
+    }
+
+    @GetMapping("/lessons")
+    public ResponseEntity<List<LessonResponseDTO>> findAllByModuleId(@PathVariable UUID moduleId){
+        return ResponseEntity.ok(lessonService.findAllByModuleId(moduleId));
     }
 }
