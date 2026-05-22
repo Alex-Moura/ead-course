@@ -26,7 +26,7 @@ public class LessonController {
        return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.save(dto, moduleId));
     }
 
-    @GetMapping("/{lessonId}")
+    @GetMapping("/lessons/{lessonId}")
     public ResponseEntity<LessonResponseDTO> findById(@PathVariable UUID lessonId,
                                                       @PathVariable UUID moduleId){
         return ResponseEntity.ok(lessonService.findById(lessonId, moduleId));
@@ -37,10 +37,17 @@ public class LessonController {
         return ResponseEntity.ok(lessonService.findAllByModuleId(moduleId));
     }
 
-    @PutMapping("/{lessonId}")
+    @PutMapping("/lessons/{lessonId}")
     public ResponseEntity<LessonResponseDTO> update(@PathVariable UUID lessonId,
                                                     @PathVariable UUID moduleId,
                                                     @RequestBody @Valid LessonRequestDTO dto){
         return ResponseEntity.ok(lessonService.update(lessonId, moduleId, dto));
+    }
+
+    @DeleteMapping("/lessons/{lessonId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID lessonId,
+                                       @PathVariable UUID moduleId){
+        lessonService.delete(lessonId, moduleId);
+        return ResponseEntity.noContent().build();
     }
 }

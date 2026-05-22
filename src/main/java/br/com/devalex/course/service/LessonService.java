@@ -11,4 +11,5 @@ public interface LessonService {
     LessonResponseDTO findById(UUID lessonId, UUID moduleId);
     List<LessonResponseDTO> findAllByModuleId(UUID moduleId);
     LessonResponseDTO update(UUID lessonId, UUID moduleId, LessonRequestDTO dto);
+    void delete(UUID lessonId, UUID moduleId);
 }
