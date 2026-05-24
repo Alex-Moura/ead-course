@@ -27,7 +27,7 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public LessonResponseDTO save(LessonRequestDTO dto, UUID moduleId) {
         Module module = moduleRepository.findById(moduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Modulo com id: " + moduleId + " não encotrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Modulo com id: " + moduleId + " não encontrado"));
         Lesson lesson = lessonMapper.toEntity(dto);
         lesson.setModule(module);
         return lessonMapper.toDTO(lessonRepository.save(lesson));

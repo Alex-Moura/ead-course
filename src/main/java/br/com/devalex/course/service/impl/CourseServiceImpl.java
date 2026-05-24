@@ -29,21 +29,21 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void delete(UUID id) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encotrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encontrado"));
         courseRepository.delete(course);
     }
 
     @Override
     public CourseResponseDTO findById(UUID id) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + id + " não encotrado"));
+                .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + id + " não encontrado"));
         return courseMapper.toDTO(course);
     }
 
     @Override
     public CourseResponseDTO update(UUID id, CourseRequestDTO dto) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encotrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encontrado"));
         courseMapper.updateCourseFromDTO(dto, course);
         return courseMapper.toDTO(courseRepository.save(course));
     }

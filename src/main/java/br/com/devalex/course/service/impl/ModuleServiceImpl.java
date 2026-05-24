@@ -25,7 +25,7 @@ public class ModuleServiceImpl implements ModuleService {
     @Override
     public ModuleResponseDTO save(ModuleRequestDTO dto, UUID courseId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + courseId + " não encotrado"));
+                .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + courseId + " não encontrado"));
         Module module = moduleMapper.toEntity(dto);
         module.setCourse(course);
         return moduleMapper.toDTO(moduleRepository.save(module));
