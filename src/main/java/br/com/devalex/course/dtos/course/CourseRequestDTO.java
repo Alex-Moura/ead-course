@@ -18,6 +18,7 @@ public record CourseRequestDTO(
             regexp = "^(http|https)://.*$",
             message = "URL da imagem deve ser válida"
         )
+        @NotBlank(message = "Imagem é obrigatório")
         String imgUrl,
 
         @NotNull(message = "Status do curso é não pode ser nulo")

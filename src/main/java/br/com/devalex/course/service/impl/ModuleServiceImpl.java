@@ -11,18 +11,21 @@ import br.com.devalex.course.repository.ModuleRepository;
 import br.com.devalex.course.service.ModuleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ModuleServiceImpl implements ModuleService {
     private final ModuleRepository moduleRepository;
     private final ModuleMapper moduleMapper;
     private final CourseRepository courseRepository;
 
     @Override
+    @Transactional
     public ModuleResponseDTO save(ModuleRequestDTO dto, UUID courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + courseId + " não encontrado"));
@@ -44,6 +47,8 @@ public class ModuleServiceImpl implements ModuleService {
         return moduleMapper.toDTOList(modules);
     }
 
+    @Override
+    @Transactional
     public ModuleResponseDTO update(UUID moduleId, UUID courseId, ModuleRequestDTO dto){
         Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
@@ -53,6 +58,7 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
+    @Transactional
     public void delete(UUID moduleId, UUID courseId) {
         Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado para esse curso"));

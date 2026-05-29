@@ -8,6 +8,7 @@ public record LessonRequestDTO(
         @Size(min = 3, max = 150, message = "Nome deve ter entre 3 e 150 caracteres")
         String title,
 
+        @NotBlank(message = "Descrição é obrigatório")
         String description,
 
         @NotBlank(message = "Video é obrigatório")
