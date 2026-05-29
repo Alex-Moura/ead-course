@@ -13,6 +13,6 @@ public interface ModuleMapper {
     ModuleResponseDTO toDTO(Module module);
     Module toEntity(ModuleRequestDTO dto);
     List<ModuleResponseDTO> toDTOList(List<Module> modules);
-    void updateCourseFromDTO(ModuleRequestDTO dto,
+    void updateModuleFromDTO(ModuleRequestDTO dto,
                              @MappingTarget Module module);
 }

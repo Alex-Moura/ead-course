@@ -16,38 +16,50 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequestMapping("/modules/{moduleId}")
+@RequestMapping("/courses/{courseId}/modules/{moduleId}")
 public class LessonController {
+
     private final LessonService lessonService;
 
     @PostMapping("/lessons")
-    public ResponseEntity<LessonResponseDTO> save(@PathVariable UUID moduleId,
-                                                  @RequestBody @Valid LessonRequestDTO dto){
-       return ResponseEntity.status(HttpStatus.CREATED).body(lessonService.save(dto, moduleId));
-    }
-
-    @GetMapping("/lessons/{lessonId}")
-    public ResponseEntity<LessonResponseDTO> findById(@PathVariable UUID lessonId,
-                                                      @PathVariable UUID moduleId){
-        return ResponseEntity.ok(lessonService.findById(lessonId, moduleId));
+    public ResponseEntity<LessonResponseDTO> save(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @RequestBody @Valid LessonRequestDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(lessonService.save(dto, courseId, moduleId));
     }
 
     @GetMapping("/lessons")
-    public ResponseEntity<List<LessonResponseDTO>> findAllByModuleId(@PathVariable UUID moduleId){
-        return ResponseEntity.ok(lessonService.findAllByModuleId(moduleId));
+    public ResponseEntity<List<LessonResponseDTO>> findAll(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId) {
+        return ResponseEntity.ok(lessonService.findAllByModuleId(courseId, moduleId));
+    }
+
+    @GetMapping("/lessons/{lessonId}")
+    public ResponseEntity<LessonResponseDTO> findById(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @PathVariable UUID lessonId) {
+        return ResponseEntity.ok(lessonService.findById(lessonId, courseId, moduleId));
     }
 
     @PutMapping("/lessons/{lessonId}")
-    public ResponseEntity<LessonResponseDTO> update(@PathVariable UUID lessonId,
-                                                    @PathVariable UUID moduleId,
-                                                    @RequestBody @Valid LessonRequestDTO dto){
-        return ResponseEntity.ok(lessonService.update(lessonId, moduleId, dto));
+    public ResponseEntity<LessonResponseDTO> update(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @PathVariable UUID lessonId,
+            @RequestBody @Valid LessonRequestDTO dto) {
+        return ResponseEntity.ok(lessonService.update(lessonId, courseId, moduleId, dto));
     }
 
     @DeleteMapping("/lessons/{lessonId}")
-    public ResponseEntity<Void> delete(@PathVariable UUID lessonId,
-                                       @PathVariable UUID moduleId){
-        lessonService.delete(lessonId, moduleId);
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @PathVariable UUID lessonId) {
+        lessonService.delete(lessonId, courseId, moduleId);
         return ResponseEntity.noContent().build();
     }
 }

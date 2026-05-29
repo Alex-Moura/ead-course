@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface LessonService {
-    LessonResponseDTO save (LessonRequestDTO dto, UUID moduleId);
-    LessonResponseDTO findById(UUID lessonId, UUID moduleId);
-    List<LessonResponseDTO> findAllByModuleId(UUID moduleId);
-    LessonResponseDTO update(UUID lessonId, UUID moduleId, LessonRequestDTO dto);
-    void delete(UUID lessonId, UUID moduleId);
+    LessonResponseDTO save(LessonRequestDTO dto, UUID courseId, UUID moduleId);
+    LessonResponseDTO findById(UUID lessonId, UUID courseId, UUID moduleId);
+    List<LessonResponseDTO> findAllByModuleId(UUID courseId, UUID moduleId);
+    LessonResponseDTO update(UUID lessonId, UUID courseId, UUID moduleId, LessonRequestDTO dto);
+    void delete(UUID lessonId, UUID courseId, UUID moduleId);
 }

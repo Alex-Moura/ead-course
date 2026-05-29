@@ -47,7 +47,7 @@ public class ModuleServiceImpl implements ModuleService {
     public ModuleResponseDTO update(UUID moduleId, UUID courseId, ModuleRequestDTO dto){
         Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
-        moduleMapper.updateCourseFromDTO(dto, module);
+        moduleMapper.updateModuleFromDTO(dto, module);
         return moduleMapper.toDTO(moduleRepository.save(module));
 
     }

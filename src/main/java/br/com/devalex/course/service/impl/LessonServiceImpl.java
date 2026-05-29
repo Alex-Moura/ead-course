@@ -2,7 +2,6 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
 import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
-import br.com.devalex.course.dtos.module.ModuleResponseDTO;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.LessonMapper;
 import br.com.devalex.course.model.Lesson;
@@ -10,6 +9,7 @@ import br.com.devalex.course.model.Module;
 import br.com.devalex.course.repository.LessonRepository;
 import br.com.devalex.course.repository.ModuleRepository;
 import br.com.devalex.course.service.LessonService;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LessonServiceImpl implements LessonService {
 
     private final LessonRepository lessonRepository;
@@ -25,43 +26,62 @@ public class LessonServiceImpl implements LessonService {
     private final LessonMapper lessonMapper;
 
     @Override
-    public LessonResponseDTO save(LessonRequestDTO dto, UUID moduleId) {
-        Module module = moduleRepository.findById(moduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Modulo com id: " + moduleId + " não encontrado"));
+    @Transactional
+    public LessonResponseDTO save(LessonRequestDTO dto, UUID courseId, UUID moduleId) {
+        Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+
         Lesson lesson = lessonMapper.toEntity(dto);
         lesson.setModule(module);
         return lessonMapper.toDTO(lessonRepository.save(lesson));
     }
 
     @Override
-    public LessonResponseDTO findById(UUID lessonId, UUID moduleId) {
-        Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lição não encontrada para esse módulo"));
-        return lessonMapper.toDTO(lesson);
+    public LessonResponseDTO findById(UUID lessonId, UUID courseId, UUID moduleId) {
+        moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+
+        return lessonRepository.findByIdAndModuleId(lessonId, moduleId)
+                .map(lessonMapper::toDTO)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Lição com id: " + lessonId + " não encontrada no módulo: " + moduleId));
     }
 
     @Override
-    public List<LessonResponseDTO> findAllByModuleId(UUID moduleId) {
-        if (!moduleRepository.existsById(moduleId)) {
-            throw new ResourceNotFoundException("Modulo não encontrado");
-        }
+    public List<LessonResponseDTO> findAllByModuleId(UUID courseId, UUID moduleId) {
+        moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
 
-        List<Lesson> lessons = lessonRepository.findAllByModuleId(moduleId);
-        return lessonMapper.toDTOList(lessons);
+        return lessonMapper.toDTOList(lessonRepository.findAllByModuleId(moduleId));
     }
 
     @Override
-    public LessonResponseDTO update(UUID lessonId, UUID moduleId, LessonRequestDTO dto) {
+    @Transactional
+    public LessonResponseDTO update(UUID lessonId, UUID courseId, UUID moduleId, LessonRequestDTO dto) {
+        moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lição não encontrada para esse módulo"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Lição com id: " + lessonId + " não encontrada no módulo: " + moduleId));
         lessonMapper.updateLessonFromDTO(dto, lesson);
         return lessonMapper.toDTO(lessonRepository.save(lesson));
     }
 
     @Override
-    public void delete(UUID lessonId, UUID moduleId) {
+    @Transactional
+    public void delete(UUID lessonId, UUID courseId, UUID moduleId) {
+        moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
-                .orElseThrow(() -> new ResourceNotFoundException("Lição não encontrada para esse módulo"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Lição com id: " + lessonId + " não encontrada no módulo: " + moduleId));
         lessonRepository.delete(lesson);
     }
 }
