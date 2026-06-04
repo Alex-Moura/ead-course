@@ -36,9 +36,9 @@ public class ModuleServiceImpl implements ModuleService {
 
     @Override
     public ModuleResponseDTO findById(UUID moduleId, UUID courseId) {
-        Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
-        return moduleMapper.toDTO(module);
+        return moduleRepository.findByIdAndCourseId(moduleId, courseId)
+                .map(moduleMapper::toDTO)
+                .orElseThrow(()-> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
     }
 
     @Override

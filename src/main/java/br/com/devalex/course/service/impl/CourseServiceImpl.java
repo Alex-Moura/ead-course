@@ -10,7 +10,6 @@ import br.com.devalex.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
 import java.util.List;
 import java.util.UUID;
 

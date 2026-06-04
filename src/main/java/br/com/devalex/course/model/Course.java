@@ -5,10 +5,6 @@ import br.com.devalex.course.enums.CourseStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,7 +44,6 @@ public class Course {
     private UUID userInstructor;
 
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
-    @Fetch(FetchMode.SUBSELECT)
     private List<Module> modules;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
