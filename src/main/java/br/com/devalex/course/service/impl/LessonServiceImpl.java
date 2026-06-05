@@ -40,10 +40,10 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public LessonResponseDTO findById(UUID lessonId, UUID courseId, UUID moduleId) {
-        moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
-
+        if (!moduleRepository.existsByIdAndCourseId(moduleId, courseId)) {
+            throw new ResourceNotFoundException(
+                    String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId));
+        }
         return lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .map(lessonMapper::toDTO)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -52,20 +52,20 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public List<LessonResponseDTO> findAllByModuleId(UUID courseId, UUID moduleId) {
-        moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
-
+        if (!moduleRepository.existsByIdAndCourseId(moduleId, courseId)) {
+            throw new ResourceNotFoundException(
+                    String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId));
+        }
         return lessonMapper.toDTOList(lessonRepository.findAllByModuleId(moduleId));
     }
 
     @Override
     @Transactional
     public LessonResponseDTO update(UUID lessonId, UUID courseId, UUID moduleId, LessonRequestDTO dto) {
-        moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
-
+        if (!moduleRepository.existsByIdAndCourseId(moduleId, courseId)) {
+            throw new ResourceNotFoundException(
+                    String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId));
+        }
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(ErrorMessages.LESSON_NOT_FOUND,lessonId)));
@@ -76,10 +76,10 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public void delete(UUID lessonId, UUID courseId, UUID moduleId) {
-        moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
-
+        if (!moduleRepository.existsByIdAndCourseId(moduleId, courseId)) {
+            throw new ResourceNotFoundException(
+                    String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId));
+        }
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format(ErrorMessages.LESSON_NOT_FOUND,lessonId)));

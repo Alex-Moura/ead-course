@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface ModuleRepository extends JpaRepository<Module, UUID> {
     Optional<Module> findByIdAndCourseId(UUID moduleId, UUID courseId);
     List<Module> findAllByCourseId(UUID courseId);
+    boolean existsByIdAndCourseId(UUID moduleId, UUID courseId);
 }
