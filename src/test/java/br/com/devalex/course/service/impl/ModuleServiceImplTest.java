@@ -69,4 +69,37 @@ public class ModuleServiceImplTest {
             verifyNoInteractions(moduleRepository);
         }
     }
+
+
+
+    @Nested
+    @DisplayName("findById()")
+    class FindById{
+
+        @Test
+        @DisplayName("should return module when (moduleId, courseId) pair is found")
+        void shouldReturnModuleWhenModuleAndCourseExist(){
+            Module entity = moduleEntity();
+            ModuleResponseDTO response = moduleResponse();
+
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
+                    .thenReturn(Optional.of(entity));
+            when(moduleMapper.toDTO(entity)).thenReturn(response);
+
+            assertThat(moduleService.findById(MODULE_ID, COURSE_ID).id()).isEqualTo(MODULE_ID);
+
+        }
+
+        @Test
+        @DisplayName("should throw an exception when the module does not belong to the course")
+        void shouldThrowExceptionWhenModuleIsNotPartOfCourse(){
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> moduleService.findById(MODULE_ID, COURSE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class);
+
+            verifyNoInteractions(moduleMapper);
+        }
+    }
 }
