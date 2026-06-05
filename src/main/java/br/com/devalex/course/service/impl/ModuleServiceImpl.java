@@ -2,6 +2,7 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.module.ModuleRequestDTO;
 import br.com.devalex.course.dtos.module.ModuleResponseDTO;
+import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.ModuleMapper;
 import br.com.devalex.course.model.Course;
@@ -28,7 +29,7 @@ public class ModuleServiceImpl implements ModuleService {
     @Transactional
     public ModuleResponseDTO save(ModuleRequestDTO dto, UUID courseId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + courseId + " não encontrado"));
+                .orElseThrow(()-> new ResourceNotFoundException(String.format(ErrorMessages.COURSE_NOT_FOUND, courseId)));
         Module module = moduleMapper.toEntity(dto);
         module.setCourse(course);
         return moduleMapper.toDTO(moduleRepository.save(module));
@@ -38,7 +39,7 @@ public class ModuleServiceImpl implements ModuleService {
     public ModuleResponseDTO findById(UUID moduleId, UUID courseId) {
         return moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .map(moduleMapper::toDTO)
-                .orElseThrow(()-> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
+                .orElseThrow(()-> new ResourceNotFoundException(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
     }
 
     @Override
@@ -51,7 +52,7 @@ public class ModuleServiceImpl implements ModuleService {
     @Transactional
     public ModuleResponseDTO update(UUID moduleId, UUID courseId, ModuleRequestDTO dto){
         Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
         moduleMapper.updateModuleFromDTO(dto, module);
         return moduleMapper.toDTO(moduleRepository.save(module));
 
@@ -61,7 +62,7 @@ public class ModuleServiceImpl implements ModuleService {
     @Transactional
     public void delete(UUID moduleId, UUID courseId) {
         Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Módulo não encontrado para esse curso"));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
         moduleRepository.delete(module);
     }
 }

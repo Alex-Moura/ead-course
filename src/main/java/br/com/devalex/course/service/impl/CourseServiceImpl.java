@@ -2,6 +2,7 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.course.CourseRequestDTO;
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
+import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.CourseMapper;
 import br.com.devalex.course.model.Course;
@@ -28,21 +29,21 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public void delete(UUID id) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(ErrorMessages.COURSE_NOT_FOUND,id)));
         courseRepository.delete(course);
     }
 
     @Override
     public CourseResponseDTO findById(UUID id) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Curso com id: " + id + " não encontrado"));
+                .orElseThrow(()-> new ResourceNotFoundException(String.format(ErrorMessages.COURSE_NOT_FOUND,id)));
         return courseMapper.toDTO(course);
     }
 
     @Override
     public CourseResponseDTO update(UUID id, CourseRequestDTO dto) {
         Course course = courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Curso com id: " + id + " não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format(ErrorMessages.COURSE_NOT_FOUND,id)));
         courseMapper.updateCourseFromDTO(dto, course);
         return courseMapper.toDTO(courseRepository.save(course));
     }

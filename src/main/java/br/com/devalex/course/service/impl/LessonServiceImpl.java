@@ -2,6 +2,7 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
 import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
+import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.LessonMapper;
 import br.com.devalex.course.model.Lesson;
@@ -30,7 +31,7 @@ public class LessonServiceImpl implements LessonService {
     public LessonResponseDTO save(LessonRequestDTO dto, UUID courseId, UUID moduleId) {
         Module module = moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
 
         Lesson lesson = lessonMapper.toEntity(dto);
         lesson.setModule(module);
@@ -41,19 +42,19 @@ public class LessonServiceImpl implements LessonService {
     public LessonResponseDTO findById(UUID lessonId, UUID courseId, UUID moduleId) {
         moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
 
         return lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .map(lessonMapper::toDTO)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lição com id: " + lessonId + " não encontrada no módulo: " + moduleId));
+                        String.format(ErrorMessages.LESSON_NOT_FOUND,lessonId)));
     }
 
     @Override
     public List<LessonResponseDTO> findAllByModuleId(UUID courseId, UUID moduleId) {
         moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
 
         return lessonMapper.toDTOList(lessonRepository.findAllByModuleId(moduleId));
     }
@@ -63,11 +64,11 @@ public class LessonServiceImpl implements LessonService {
     public LessonResponseDTO update(UUID lessonId, UUID courseId, UUID moduleId, LessonRequestDTO dto) {
         moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
 
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lição com id: " + lessonId + " não encontrada no módulo: " + moduleId));
+                        String.format(ErrorMessages.LESSON_NOT_FOUND,lessonId)));
         lessonMapper.updateLessonFromDTO(dto, lesson);
         return lessonMapper.toDTO(lessonRepository.save(lesson));
     }
@@ -77,11 +78,11 @@ public class LessonServiceImpl implements LessonService {
     public void delete(UUID lessonId, UUID courseId, UUID moduleId) {
         moduleRepository.findByIdAndCourseId(moduleId, courseId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Módulo com id: " + moduleId + " não encontrado no curso: " + courseId));
+                        String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId)));
 
         Lesson lesson = lessonRepository.findByIdAndModuleId(lessonId, moduleId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Lição com id: " + lessonId + " não encontrada no módulo: " + moduleId));
+                        String.format(ErrorMessages.LESSON_NOT_FOUND,lessonId)));
         lessonRepository.delete(lesson);
     }
 }
