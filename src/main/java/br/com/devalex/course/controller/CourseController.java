@@ -2,7 +2,6 @@ package br.com.devalex.course.controller;
 
 import br.com.devalex.course.dtos.course.CourseRequestDTO;
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
-import br.com.devalex.course.model.Course;
 import br.com.devalex.course.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

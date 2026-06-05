@@ -35,9 +35,10 @@ public class GlobalExceptionHandler {
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
         Map<String, String> errors = new LinkedHashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
-            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-        });
+        ex.getBindingResult().getFieldErrors()
+                .forEach(fieldError ->
+                        errors.put(fieldError.getField(), fieldError.getDefaultMessage())
+                );
 
         ApiError error = buildError(
                 status,
