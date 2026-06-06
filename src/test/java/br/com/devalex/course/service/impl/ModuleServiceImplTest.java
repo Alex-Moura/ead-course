@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import static br.com.devalex.course.common.TestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
@@ -163,6 +164,35 @@ public class ModuleServiceImplTest {
 
             verify(moduleRepository, never()).save(any());
 
+        }
+    }
+
+    @Nested
+    @DisplayName("delete()")
+    class Delete{
+        @Test
+        @DisplayName("should delete module")
+        void shouldDeleteModule(){
+            Module entity = moduleEntity();
+
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(Optional.of(entity));
+
+            assertThatCode(() -> moduleService.delete(MODULE_ID, COURSE_ID))
+                    .doesNotThrowAnyException();
+
+            verify(moduleRepository).delete(entity);
+        }
+
+        @Test
+        @DisplayName("should throw an exception when deleting a non-existent module")
+        void shouldThrowExceptionWhenDeletingNonExistentModule(){
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> moduleService.delete(MODULE_ID, COURSE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class);
+
+            verify(moduleRepository, never()).delete(any());
         }
     }
 }
