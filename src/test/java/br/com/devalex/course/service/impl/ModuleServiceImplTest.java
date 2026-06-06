@@ -129,4 +129,40 @@ public class ModuleServiceImplTest {
             assertThat(moduleService.findAllByCourseId(COURSE_ID)).isEmpty();
         }
     }
+
+    @Nested
+    @DisplayName("update()")
+    class Update{
+        @Test
+        @DisplayName("should update module when found")
+        void shouldUpdateModule(){
+            Module entity = moduleEntity();
+            ModuleResponseDTO response = moduleResponse();
+
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
+                    .thenReturn(Optional.of(entity));
+            when(moduleRepository.save(entity)).thenReturn(entity);
+            when(moduleMapper.toDTO(entity)).thenReturn(response);
+
+            ModuleResponseDTO result = moduleService.update(MODULE_ID, COURSE_ID, moduleRequest());
+
+            assertThat(result).isNotNull();
+            verify(moduleMapper).updateModuleFromDTO(moduleRequest(), entity);
+            verify(moduleRepository).save(entity);
+
+        }
+
+        @Test
+        @DisplayName("should throw an exception when updating a non-existent module")
+        void shouldThrowExceptionWhenModuleIsNotPartOfCourse(){
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> moduleService.update(MODULE_ID, COURSE_ID, moduleRequest()))
+                    .isInstanceOf(ResourceNotFoundException.class);
+
+            verify(moduleRepository, never()).save(any());
+
+        }
+    }
 }
