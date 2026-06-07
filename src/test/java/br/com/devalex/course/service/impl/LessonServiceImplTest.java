@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static br.com.devalex.course.common.TestFixtures.*;
@@ -82,7 +83,7 @@ public class LessonServiceImplTest {
 
         @Test
         @DisplayName("should find lesson by id")
-        void findById(){
+        void shouldReturnLessonById(){
             Module module = moduleEntity();
             Lesson entity = lessonEntity();
             LessonResponseDTO response = lessonResponse();
@@ -119,6 +120,50 @@ public class LessonServiceImplTest {
             assertThatThrownBy(() -> lessonService.findById(LESSON_ID, COURSE_ID, MODULE_ID))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(String.format(ErrorMessages.LESSON_NOT_FOUND, LESSON_ID));
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllByModuleId()")
+    class FindAllByModuleId{
+
+        @Test
+        @DisplayName("should return a list of lessons when the module belongs to the course")
+        void shouldReturnListOfLessons(){
+            List<Lesson> entities = List.of(lessonEntity());
+            List<LessonResponseDTO> dtos = List.of(lessonResponse());
+
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
+            when(lessonRepository.findAllByModuleId(MODULE_ID)).thenReturn(entities);
+            when(lessonMapper.toDTOList(entities)).thenReturn(dtos);
+
+            List<LessonResponseDTO> result = lessonService.findAllByModuleId(COURSE_ID, MODULE_ID);
+
+            assertThat(result).hasSize(1).containsExactlyElementsOf(dtos);
+        }
+
+        @Test
+        @DisplayName("should return an empty list when the module has no lessons")
+        void shouldReturnEmptyListWhenModuleHasNoLessons(){
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
+            when(lessonRepository.findAllByModuleId(MODULE_ID)).thenReturn(List.of());
+            when(lessonMapper.toDTOList(List.of())).thenReturn(List.of());
+
+            List<LessonResponseDTO> result = lessonService.findAllByModuleId(COURSE_ID, MODULE_ID);
+
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when the module does not belong to the course")
+        void shouldThrowExceptionWhenModuleDoesNotBelongToCourse(){
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(false);
+
+            assertThatThrownBy(() -> lessonService.findAllByModuleId(COURSE_ID, MODULE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
+
+            verify(lessonRepository, never()).findAllByModuleId(any());
         }
     }
 }
