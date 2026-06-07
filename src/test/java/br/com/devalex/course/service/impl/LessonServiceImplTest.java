@@ -1,5 +1,6 @@
 package br.com.devalex.course.service.impl;
 
+import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
 import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
 import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
@@ -164,6 +165,63 @@ public class LessonServiceImplTest {
                     .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
 
             verify(lessonRepository, never()).findAllByModuleId(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("update()")
+    class Update {
+
+        @Test
+        @DisplayName("should successfully update the lesson")
+        void shouldUpdateLessonSuccessfully() {
+            Lesson entity = lessonEntity();
+            LessonRequestDTO request = lessonRequest();
+            LessonResponseDTO response = lessonResponse();
+
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
+            when(lessonRepository.findByIdAndModuleId(LESSON_ID, MODULE_ID))
+                    .thenReturn(Optional.of(entity));
+            when(lessonRepository.save(entity)).thenReturn(entity);
+            when(lessonMapper.toDTO(entity)).thenReturn(response);
+
+            LessonResponseDTO result = lessonService.update(LESSON_ID, COURSE_ID, MODULE_ID, request);
+
+            assertThat(result).isEqualTo(response);
+            verify(moduleRepository).existsByIdAndCourseId(MODULE_ID, COURSE_ID);
+            verify(lessonMapper).updateLessonFromDTO(request, entity);
+            verify(lessonRepository).save(entity);
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when the module does not belong to the course")
+        void shouldThrowExceptionWhenModuleDoesNotBelongToCourse() {
+            LessonRequestDTO request = lessonRequest();
+
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(false);
+
+            assertThatThrownBy(() -> lessonService.update(LESSON_ID, COURSE_ID, MODULE_ID, request))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
+
+            verify(lessonRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when the lesson does not belong to the module")
+        void shouldThrowExceptionWhenLessonDoesNotBelongToModule() {
+            LessonRequestDTO request = lessonRequest();
+
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
+            when(lessonRepository.findByIdAndModuleId(LESSON_ID, MODULE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> lessonService.update(LESSON_ID, COURSE_ID, MODULE_ID, request))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.LESSON_NOT_FOUND, LESSON_ID, MODULE_ID));
+
+            verify(lessonMapper, never()).updateLessonFromDTO(any(), any());
+            verify(lessonRepository, never()).save(any());
         }
     }
 }
