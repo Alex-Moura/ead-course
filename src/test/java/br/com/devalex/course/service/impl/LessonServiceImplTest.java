@@ -218,10 +218,56 @@ public class LessonServiceImplTest {
 
             assertThatThrownBy(() -> lessonService.update(LESSON_ID, COURSE_ID, MODULE_ID, request))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage(String.format(ErrorMessages.LESSON_NOT_FOUND, LESSON_ID, MODULE_ID));
+                    .hasMessage(String.format(ErrorMessages.LESSON_NOT_FOUND, LESSON_ID));
 
             verify(lessonMapper, never()).updateLessonFromDTO(any(), any());
             verify(lessonRepository, never()).save(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("delete()")
+    class Delete {
+
+        @Test
+        @DisplayName("should successfully delete the lesson")
+        void shouldDeleteLessonSuccessfully() {
+            Lesson entity = lessonEntity();
+
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
+            when(lessonRepository.findByIdAndModuleId(LESSON_ID, MODULE_ID))
+                    .thenReturn(Optional.of(entity));
+
+            lessonService.delete(LESSON_ID, COURSE_ID, MODULE_ID);
+
+            verify(lessonRepository).delete(entity);
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when the module does not belong to the course")
+        void shouldThrowExceptionWhenModuleDoesNotBelongToCourse() {
+
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(false);
+
+            assertThatThrownBy(() -> lessonService.delete(LESSON_ID, COURSE_ID, MODULE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
+
+            verify(lessonRepository, never()).delete(any());
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when the lesson does not belong to the module")
+        void shouldThrowExceptionWhenLessonDoesNotBelongToModule() {
+            when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
+            when(lessonRepository.findByIdAndModuleId(LESSON_ID, MODULE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> lessonService.delete(LESSON_ID, COURSE_ID, MODULE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.LESSON_NOT_FOUND, LESSON_ID));
+
+            verify(lessonRepository, never()).delete(any());
         }
     }
 }
