@@ -1,6 +1,7 @@
 package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.module.ModuleResponseDTO;
+import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.ModuleMapper;
 import br.com.devalex.course.model.Course;
@@ -17,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static br.com.devalex.course.common.TestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,13 +60,11 @@ public class ModuleServiceImplTest {
         @Test
         @DisplayName("should throw an exception when the course does not exist")
         void shouldThrowResourceNotFoundExceptionWhenCourseDoesNotExist(){
-            UUID id = UUID.randomUUID();
+            when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.empty());
 
-            when(courseRepository.findById(id)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> moduleService.save(moduleRequest(), id))
+            assertThatThrownBy(() -> moduleService.save(moduleRequest(), COURSE_ID))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("Curso com id: %s não encontrado", id);
+                    .hasMessage(String.format(ErrorMessages.COURSE_NOT_FOUND, COURSE_ID));
 
             verifyNoInteractions(moduleRepository);
         }
@@ -99,7 +97,8 @@ public class ModuleServiceImplTest {
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> moduleService.findById(MODULE_ID, COURSE_ID))
-                    .isInstanceOf(ResourceNotFoundException.class);
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
 
             verifyNoInteractions(moduleMapper);
         }
@@ -160,7 +159,8 @@ public class ModuleServiceImplTest {
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> moduleService.update(MODULE_ID, COURSE_ID, moduleRequest()))
-                    .isInstanceOf(ResourceNotFoundException.class);
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
 
             verify(moduleRepository, never()).save(any());
 
@@ -190,7 +190,8 @@ public class ModuleServiceImplTest {
                     .thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> moduleService.delete(MODULE_ID, COURSE_ID))
-                    .isInstanceOf(ResourceNotFoundException.class);
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
 
             verify(moduleRepository, never()).delete(any());
         }

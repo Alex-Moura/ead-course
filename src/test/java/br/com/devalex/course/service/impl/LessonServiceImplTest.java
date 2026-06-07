@@ -85,7 +85,6 @@ public class LessonServiceImplTest {
         @Test
         @DisplayName("should find lesson by id")
         void shouldReturnLessonById(){
-            Module module = moduleEntity();
             Lesson entity = lessonEntity();
             LessonResponseDTO response = lessonResponse();
 

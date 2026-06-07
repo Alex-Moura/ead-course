@@ -2,6 +2,7 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.course.CourseRequestDTO;
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
+import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.CourseMapper;
 import br.com.devalex.course.model.Course;
@@ -16,12 +17,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static br.com.devalex.course.common.TestFixtures.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -95,12 +95,11 @@ public class CourseServiceImplTest {
         @Test
         @DisplayName("should throw ResourceNotFoundException when course does not exist")
         void shouldThrowExceptionWhenCourseDoesNotExist(){
-            UUID id = UUID.randomUUID();
-            when(courseRepository.findById(id)).thenReturn(Optional.empty());
+            when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> courseService.findById(id))
+            assertThatThrownBy(() -> courseService.findById(COURSE_ID))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("Curso com id: " + id + " não encontrado");
+                    .hasMessage(String.format(ErrorMessages.COURSE_NOT_FOUND, COURSE_ID));
 
             verifyNoInteractions(courseMapper);
         }
@@ -158,11 +157,11 @@ public class CourseServiceImplTest {
         @Test
         @DisplayName("should throw an exception when the course does not exist during update")
         void shouldThrowExceptionWhenCourseDoesNotExist(){
-            UUID id = UUID.randomUUID();
-            when(courseRepository.findById(id)).thenReturn(Optional.empty());
+            when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> courseService.update(id, courseRequest()))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> courseService.update(COURSE_ID, courseRequest()))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.COURSE_NOT_FOUND, COURSE_ID));
 
             verify(courseRepository, never()).save(any());
         }
@@ -186,11 +185,11 @@ public class CourseServiceImplTest {
         @Test
         @DisplayName("should throw an exception when deleting a non-existent course")
         void shouldThrowExceptionWhenDeletingNonExistentCourse(){
-            UUID id = UUID.randomUUID();
-            when(courseRepository.findById(id)).thenReturn(Optional.empty());
+            when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> courseService.delete(id))
-                    .isInstanceOf(ResourceNotFoundException.class);
+            assertThatThrownBy(() -> courseService.delete(COURSE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessage(String.format(ErrorMessages.COURSE_NOT_FOUND, COURSE_ID));
 
             verify(courseRepository, never()).delete(any(Course.class));
         }
