@@ -2,6 +2,7 @@ package br.com.devalex.course.service.impl;
 
 import br.com.devalex.course.dtos.course.CourseRequestDTO;
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
+import br.com.devalex.course.enums.CourseStatus;
 import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.mapper.CourseMapper;
@@ -14,6 +15,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.PredicateSpecification;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,32 +113,83 @@ public class CourseServiceImplTest {
     }
 
     @Nested
-    @DisplayName("findAll()")
-    class FindAll{
+    @DisplayName("findAll(Specification, Pageable)")
+    class FindAllPaginated {
 
         @Test
-        @DisplayName("should return a list of DTOs when there are courses")
-        void shouldReturnListOfDTOs(){
-            List<Course> entities = List.of(courseEntity());
-            List<CourseResponseDTO> dtos = List.of(courseResponse());
+        @DisplayName("should return a Page of DTOs when courses exist")
+        void shouldReturnPageOfDTOs() {
+            Course entity = courseEntity();
+            CourseResponseDTO response = courseResponse();
+            Page<Course> coursePage = new PageImpl<>(List.of(entity), PageRequest.of(0, 10), 1);
 
-            when(courseRepository.findAll()).thenReturn(entities);
-            when(courseMapper.toDTOList(entities)).thenReturn(dtos);
+            when(courseRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(coursePage);
+            when(courseMapper.toDTO(entity)).thenReturn(response);
 
-            assertThat(courseService.findAll()).hasSize(1);
+            Specification<Course> noFilter = (root, query, cb) -> null;
+            Page<CourseResponseDTO> result = courseService.findAll(noFilter, PageRequest.of(0, 10));
+
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).id()).isEqualTo(COURSE_ID);
+            verify(courseRepository).findAll(any(Specification.class), any(Pageable.class));
+            verify(courseMapper).toDTO(entity);
         }
 
         @Test
-        @DisplayName("should return an empty list when there are no courses")
-        void shouldReturnEmptyList(){
+        @DisplayName("should return an empty Page when no courses match the specification")
+        void shouldReturnEmptyPageWhenNoCoursesMatch() {
+            Page<Course> emptyPage = Page.empty(PageRequest.of(0, 10));
 
-            when(courseRepository.findAll()).thenReturn(List.of());
-            when(courseMapper.toDTOList(List.of())).thenReturn(List.of());
+            when(courseRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(emptyPage);
 
-            assertThat(courseService.findAll()).isEmpty();
+            Specification<Course> noFilter = (root, query, cb) -> null;
+            Page<CourseResponseDTO> result = courseService.findAll(noFilter, PageRequest.of(0, 10));
+
+            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.getContent()).isEmpty();
+            verifyNoInteractions(courseMapper);
+        }
+
+        @Test
+        @DisplayName("should respect pagination — return only the requested page")
+        void shouldRespectPagination() {
+            Course c2 = courseEntity();
+            Page<Course> secondPage = new PageImpl<>(List.of(c2), PageRequest.of(1, 1), 2);
+
+            when(courseRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(secondPage);
+            when(courseMapper.toDTO(c2)).thenReturn(courseResponse());
+
+            Specification<Course> noFilter = (root, query, cb) -> null;
+            Page<CourseResponseDTO> result = courseService.findAll(noFilter, PageRequest.of(0, 10));
+
+            assertThat(result.getNumber()).isEqualTo(1);
+            assertThat(result.getSize()).isEqualTo(1);
+            assertThat(result.getTotalElements()).isEqualTo(2);
+            assertThat(result.getTotalPages()).isEqualTo(2);
+            assertThat(result.getContent()).hasSize(1);
+        }
+
+        @Test
+        @DisplayName("should pass the exact specification through to the repository")
+        void shouldDelegateSpecificationToRepository() {
+            Specification<Course> spec = (root, query, cb) ->
+                    cb.equal(root.get("courseStatus"), CourseStatus.INPROGRESS);
+
+            Page<Course> coursePage = new PageImpl<>(List.of(courseEntity()));
+
+            when(courseRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenReturn(coursePage);
+            when(courseMapper.toDTO(any())).thenReturn(courseResponse());
+
+            courseService.findAll(spec, PageRequest.of(0, 10));
+
+            verify(courseRepository).findAll(eq(spec), any(Pageable.class));
         }
     }
-
     @Nested
     @DisplayName("update()")
     class update{

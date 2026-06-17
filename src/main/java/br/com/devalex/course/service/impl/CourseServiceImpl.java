@@ -9,9 +9,11 @@ import br.com.devalex.course.model.Course;
 import br.com.devalex.course.repository.CourseRepository;
 import br.com.devalex.course.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -49,8 +51,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponseDTO> findAll() {
-        List<Course> courses = courseRepository.findAll();
-        return courseMapper.toDTOList(courses);
+    public Page<CourseResponseDTO> findAll(Specification<Course> spec, Pageable pageable) {
+        return courseRepository.findAll(spec, pageable)
+                .map(courseMapper::toDTO);
     }
 }

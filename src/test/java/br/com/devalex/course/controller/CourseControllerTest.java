@@ -1,15 +1,22 @@
 package br.com.devalex.course.controller;
 
 
+import br.com.devalex.course.dtos.course.CourseResponseDTO;
+import br.com.devalex.course.enums.CourseLevel;
+import br.com.devalex.course.enums.CourseStatus;
 import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.service.CourseService;
+import br.com.devalex.course.specification.SpecificationTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -117,24 +124,134 @@ public class CourseControllerTest {
     class FindAll {
 
         @Test
-        @DisplayName("should return 200 and a list of courses")
-        void shouldReturn200WithListOfCourses() throws Exception {
-            when(courseService.findAll()).thenReturn(List.of(courseResponse()));
+        @DisplayName("should return 200 with Page structure and default pagination")
+        void shouldReturn200WithPageStructure() throws Exception {
+            Page<CourseResponseDTO> page = new PageImpl<>(
+                    List.of(courseResponse()),
+                    PageRequest.of(0, 10),
+                    1
+            );
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(page);
 
             mockMvc.perform(get("/courses"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].id").value(COURSE_ID.toString()));
+                    .andExpect(jsonPath("$.content", hasSize(1)))
+                    .andExpect(jsonPath("$.content[0].id").value(COURSE_ID.toString()))
+                    .andExpect(jsonPath("$.content[0].name").value("Spring Boot na Prática"))
+                    .andExpect(jsonPath("$.totalElements").value(1))
+                    .andExpect(jsonPath("$.totalPages").value(1))
+                    .andExpect(jsonPath("$.number").value(0))
+                    .andExpect(jsonPath("$.size").value(10));
         }
 
         @Test
-        @DisplayName("should return 200 and an empty list when there are no courses")
-        void shouldReturn200WithEmptyList() throws Exception {
-            when(courseService.findAll()).thenReturn(List.of());
+        @DisplayName("should return 200 with empty content when no courses match")
+        void shouldReturn200WithEmptyContent() throws Exception {
+            Page<CourseResponseDTO> emptyPage = Page.empty(PageRequest.of(0, 10));
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(emptyPage);
 
             mockMvc.perform(get("/courses"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
+                    .andExpect(jsonPath("$.content", hasSize(0)))
+                    .andExpect(jsonPath("$.totalElements").value(0));
+        }
+
+        @Test
+        @DisplayName("should apply name filter from query param")
+        void shouldApplyNameFilter() throws Exception {
+            Page<CourseResponseDTO> page = new PageImpl<>(List.of(courseResponse()));
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses")
+                            .param("name", "Spring"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)));
+
+            verify(courseService).findAll(any(SpecificationTemplate.CourseSpec.class), any());
+        }
+
+        @Test
+        @DisplayName("should apply courseStatus filter from query param")
+        void shouldApplyCourseStatusFilter() throws Exception {
+            Page<CourseResponseDTO> page = new PageImpl<>(List.of(courseResponse()));
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses")
+                            .param("courseStatus", CourseStatus.INPROGRESS.name()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].courseStatus").value("INPROGRESS"));
+        }
+
+        @Test
+        @DisplayName("should apply courseLevel filter from query param")
+        void shouldApplyCourseLevelFilter() throws Exception {
+            Page<CourseResponseDTO> page = new PageImpl<>(List.of(courseResponse()));
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses")
+                            .param("courseLevel", CourseLevel.BEGINNER.name()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content[0].courseLevel").value("BEGINNER"));
+        }
+
+        @Test
+        @DisplayName("should apply combined filters from multiple query params")
+        void shouldApplyCombinedFilters() throws Exception {
+            Page<CourseResponseDTO> page = new PageImpl<>(List.of(courseResponse()));
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses")
+                            .param("name", "Spring")
+                            .param("courseStatus", CourseStatus.INPROGRESS.name())
+                            .param("courseLevel", CourseLevel.BEGINNER.name()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)));
+
+            verify(courseService).findAll(any(SpecificationTemplate.CourseSpec.class), any());
+        }
+
+        @Test
+        @DisplayName("should respect custom page and size params")
+        void shouldRespectCustomPageAndSize() throws Exception {
+            Page<CourseResponseDTO> secondPage = new PageImpl<>(
+                    List.of(courseResponse()),
+                    PageRequest.of(1, 5),
+                    6
+            );
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(secondPage);
+
+            mockMvc.perform(get("/courses")
+                            .param("page", "1")
+                            .param("size", "5"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.number").value(1))
+                    .andExpect(jsonPath("$.size").value(5))
+                    .andExpect(jsonPath("$.totalElements").value(6))
+                    .andExpect(jsonPath("$.totalPages").value(2));
+        }
+
+        @Test
+        @DisplayName("should use default pagination when no params are provided")
+        void shouldUseDefaultPagination() throws Exception {
+            Page<CourseResponseDTO> page = new PageImpl<>(
+                    List.of(courseResponse()),
+                    PageRequest.of(0, 10),
+                    1
+            );
+            when(courseService.findAll(any(SpecificationTemplate.CourseSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.number").value(0))
+                    .andExpect(jsonPath("$.size").value(10));
         }
     }
 

@@ -3,13 +3,17 @@ package br.com.devalex.course.controller;
 import br.com.devalex.course.dtos.course.CourseRequestDTO;
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
 import br.com.devalex.course.service.CourseService;
+import br.com.devalex.course.specification.SpecificationTemplate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -26,8 +30,11 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CourseResponseDTO>> findAll(){
-        return ResponseEntity.ok(courseService.findAll());
+    public ResponseEntity<Page<CourseResponseDTO>> findAll(
+            SpecificationTemplate.CourseSpec spec,
+            @PageableDefault(page = 0, size = 10, sort = "id",
+                    direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(courseService.findAll(spec, pageable));
     }
 
     @GetMapping("/{id}")
