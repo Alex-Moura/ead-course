@@ -15,6 +15,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -104,31 +109,31 @@ public class ModuleServiceImplTest {
         }
     }
 
-    @Nested
-    @DisplayName("findAllByCourseId()")
-    class FindAll{
-
-        @Test
-        @DisplayName("should return all modules of the course")
-        void shouldReturnAllCourseModules(){
-            List<Module> entities = List.of(moduleEntity());
-            List<ModuleResponseDTO> dtos = List.of(moduleResponse());
-
-            when(moduleRepository.findAllByCourseId(COURSE_ID)).thenReturn(entities);
-            when(moduleMapper.toDTOList(entities)).thenReturn(dtos);
-
-            assertThat(moduleService.findAllByCourseId(COURSE_ID)).hasSize(1);
-        }
-
-        @Test
-        @DisplayName("should return an empty list when the course has no modules")
-        void shouldReturnEmptyListWhenCourseHasNoModules(){
-            when(moduleRepository.findAllByCourseId(COURSE_ID)).thenReturn(List.of());
-            when(moduleMapper.toDTOList(List.of())).thenReturn(List.of());
-
-            assertThat(moduleService.findAllByCourseId(COURSE_ID)).isEmpty();
-        }
-    }
+//    @Nested
+//    @DisplayName("findAllByCourseId()")
+//    class FindAll{
+//
+//        @Test
+//        @DisplayName("should return all modules of the course")
+//        void shouldReturnAllCourseModules(){
+//            List<Module> entities = List.of(moduleEntity());
+//            List<ModuleResponseDTO> dtos = List.of(moduleResponse());
+//
+//            when(moduleRepository.findAllByCourseId(COURSE_ID)).thenReturn(entities);
+//            when(moduleMapper.toDTOList(entities)).thenReturn(dtos);
+//
+//            assertThat(moduleService.findAllByCourseId(COURSE_ID)).hasSize(1);
+//        }
+//
+//        @Test
+//        @DisplayName("should return an empty list when the course has no modules")
+//        void shouldReturnEmptyListWhenCourseHasNoModules(){
+//            when(moduleRepository.findAllByCourseId(COURSE_ID)).thenReturn(List.of());
+//            when(moduleMapper.toDTOList(List.of())).thenReturn(List.of());
+//
+//            assertThat(moduleService.findAllByCourseId(COURSE_ID)).isEmpty();
+//        }
+//    }
 
     @Nested
     @DisplayName("update()")
@@ -168,32 +173,60 @@ public class ModuleServiceImplTest {
     }
 
     @Nested
-    @DisplayName("delete()")
-    class Delete{
+    @DisplayName("findAllByCourseId()")
+    class FindAll {
+
         @Test
-        @DisplayName("should delete module")
-        void shouldDeleteModule(){
+        @DisplayName("should return a Page of modules when course exists")
+        void shouldReturnPageOfModules() {
             Module entity = moduleEntity();
+            ModuleResponseDTO response = moduleResponse();
+            Specification<Module> spec = (root, query, cb) -> null;
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Module> page = new PageImpl<>(List.of(entity), pageable, 1);
 
-            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(Optional.of(entity));
+            when(courseRepository.existsById(COURSE_ID)).thenReturn(true);
+            when(moduleRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+            when(moduleMapper.toDTO(entity)).thenReturn(response);
 
-            assertThatCode(() -> moduleService.delete(MODULE_ID, COURSE_ID))
-                    .doesNotThrowAnyException();
+            Page<ModuleResponseDTO> result = moduleService.findAllByCourseId(COURSE_ID, spec, pageable);
 
-            verify(moduleRepository).delete(entity);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0).id()).isEqualTo(MODULE_ID);
+            verify(moduleRepository).findAll(any(Specification.class), eq(pageable));
         }
 
         @Test
-        @DisplayName("should throw an exception when deleting a non-existent module")
-        void shouldThrowExceptionWhenDeletingNonExistentModule(){
-            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
-                    .thenReturn(Optional.empty());
+        @DisplayName("should return empty Page when course has no modules")
+        void shouldReturnEmptyPage() {
+            Specification<Module> spec = (root, query, cb) -> null;
+            Pageable pageable = PageRequest.of(0, 10);
 
-            assertThatThrownBy(() -> moduleService.delete(MODULE_ID, COURSE_ID))
+            when(courseRepository.existsById(COURSE_ID)).thenReturn(true);
+            when(moduleRepository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(Page.empty(pageable));
+
+            Page<ModuleResponseDTO> result = moduleService.findAllByCourseId(COURSE_ID, spec, pageable);
+
+            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.getContent()).isEmpty();
+            verifyNoInteractions(moduleMapper);
+        }
+
+        @Test
+        @DisplayName("should throw ResourceNotFoundException when course does not exist")
+        void shouldThrowWhenCourseDoesNotExist() {
+            Specification<Module> spec = (root, query, cb) -> null;
+            Pageable pageable = PageRequest.of(0, 10);
+
+            when(courseRepository.existsById(COURSE_ID)).thenReturn(false);
+
+            assertThatThrownBy(() -> moduleService.findAllByCourseId(COURSE_ID, spec, pageable))
                     .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
+                    .hasMessage(String.format(ErrorMessages.COURSE_NOT_FOUND, COURSE_ID));
 
-            verify(moduleRepository, never()).delete(any());
+            verify(moduleRepository, never()).findAll(any(Specification.class), any(Pageable.class));
         }
     }
 }

@@ -2,6 +2,7 @@ package br.com.devalex.course.repository;
 
 import br.com.devalex.course.model.Module;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ModuleRepository extends JpaRepository<Module, UUID> {
+public interface ModuleRepository extends JpaRepository<Module, UUID>, JpaSpecificationExecutor<Module> {
     Optional<Module> findByIdAndCourseId(UUID moduleId, UUID courseId);
     List<Module> findAllByCourseId(UUID courseId);
     boolean existsByIdAndCourseId(UUID moduleId, UUID courseId);

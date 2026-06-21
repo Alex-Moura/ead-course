@@ -11,10 +11,12 @@ import br.com.devalex.course.repository.CourseRepository;
 import br.com.devalex.course.repository.ModuleRepository;
 import br.com.devalex.course.service.ModuleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -43,9 +45,19 @@ public class ModuleServiceImpl implements ModuleService {
     }
 
     @Override
-    public List<ModuleResponseDTO> findAllByCourseId(UUID courseId) {
-        List<Module> modules = moduleRepository.findAllByCourseId(courseId);
-        return moduleMapper.toDTOList(modules);
+    public Page<ModuleResponseDTO> findAllByCourseId(UUID courseId, Specification<Module> spec, Pageable pageable) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new ResourceNotFoundException(
+                    String.format(ErrorMessages.COURSE_NOT_FOUND, courseId));
+        }
+
+        Specification<Module> byCourseId = (root, query, cb) ->
+                cb.equal(root.get("course").get("id"), courseId);
+
+        Specification<Module> combined = Specification.where(byCourseId).and(spec);
+
+        return moduleRepository.findAll(combined, pageable)
+                .map(moduleMapper::toDTO);
     }
 
     @Override

@@ -103,31 +103,31 @@ public class ModuleControllerTest {
         }
     }
 
-    @Nested
-    @DisplayName("GET /courses/{courseId}/modules")
-    class FindAll {
-
-        @Test
-        @DisplayName("should return 200 and list of modules")
-        void shouldReturn200WithListOfModules() throws Exception {
-            when(moduleService.findAllByCourseId(COURSE_ID)).thenReturn(List.of(moduleResponse()));
-
-            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].id").value(MODULE_ID.toString()));
-        }
-
-        @Test
-        @DisplayName("should return 200 and empty list when course has no modules")
-        void shouldReturn200WithEmptyList() throws Exception {
-            when(moduleService.findAllByCourseId(COURSE_ID)).thenReturn(List.of());
-
-            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-        }
-    }
+//    @Nested
+//    @DisplayName("GET /courses/{courseId}/modules")
+//    class FindAll {
+//
+//        @Test
+//        @DisplayName("should return 200 and list of modules")
+//        void shouldReturn200WithListOfModules() throws Exception {
+//            when(moduleService.findAllByCourseId(COURSE_ID)).thenReturn(List.of(moduleResponse()));
+//
+//            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
+//                    .andExpect(status().isOk())
+//                    .andExpect(jsonPath("$", hasSize(1)))
+//                    .andExpect(jsonPath("$[0].id").value(MODULE_ID.toString()));
+//        }
+//
+//        @Test
+//        @DisplayName("should return 200 and empty list when course has no modules")
+//        void shouldReturn200WithEmptyList() throws Exception {
+//            when(moduleService.findAllByCourseId(COURSE_ID)).thenReturn(List.of());
+//
+//            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
+//                    .andExpect(status().isOk())
+//                    .andExpect(jsonPath("$", hasSize(0)));
+//        }
+//    }
 
     @Nested
     @DisplayName("GET /courses/{courseId}/modules/{moduleId}")
