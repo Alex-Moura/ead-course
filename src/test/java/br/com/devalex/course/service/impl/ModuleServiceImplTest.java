@@ -109,32 +109,6 @@ public class ModuleServiceImplTest {
         }
     }
 
-//    @Nested
-//    @DisplayName("findAllByCourseId()")
-//    class FindAll{
-//
-//        @Test
-//        @DisplayName("should return all modules of the course")
-//        void shouldReturnAllCourseModules(){
-//            List<Module> entities = List.of(moduleEntity());
-//            List<ModuleResponseDTO> dtos = List.of(moduleResponse());
-//
-//            when(moduleRepository.findAllByCourseId(COURSE_ID)).thenReturn(entities);
-//            when(moduleMapper.toDTOList(entities)).thenReturn(dtos);
-//
-//            assertThat(moduleService.findAllByCourseId(COURSE_ID)).hasSize(1);
-//        }
-//
-//        @Test
-//        @DisplayName("should return an empty list when the course has no modules")
-//        void shouldReturnEmptyListWhenCourseHasNoModules(){
-//            when(moduleRepository.findAllByCourseId(COURSE_ID)).thenReturn(List.of());
-//            when(moduleMapper.toDTOList(List.of())).thenReturn(List.of());
-//
-//            assertThat(moduleService.findAllByCourseId(COURSE_ID)).isEmpty();
-//        }
-//    }
-
     @Nested
     @DisplayName("update()")
     class Update{
@@ -227,6 +201,35 @@ public class ModuleServiceImplTest {
                     .hasMessage(String.format(ErrorMessages.COURSE_NOT_FOUND, COURSE_ID));
 
             verify(moduleRepository, never()).findAll(any(Specification.class), any(Pageable.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("delete()")
+    class Delete{
+        @Test
+        @DisplayName("should delete module")
+        void shouldDeleteModule(){
+            Module entity = moduleEntity();
+
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(Optional.of(entity));
+
+            assertThatCode(() -> moduleService.delete(MODULE_ID, COURSE_ID))
+                    .doesNotThrowAnyException();
+
+            verify(moduleRepository).delete(entity);
+        }
+
+        @Test
+        @DisplayName("should throw an exception when deleting a non-existent module")
+        void shouldThrowExceptionWhenDeletingNonExistentModule(){
+            when(moduleRepository.findByIdAndCourseId(MODULE_ID, COURSE_ID))
+                    .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> moduleService.delete(MODULE_ID, COURSE_ID))
+                    .isInstanceOf(ResourceNotFoundException.class);
+
+            verify(moduleRepository, never()).delete(any(Module.class));
         }
     }
 }
