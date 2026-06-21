@@ -4,13 +4,17 @@ package br.com.devalex.course.controller;
 import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
 import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
 import br.com.devalex.course.service.LessonService;
+import br.com.devalex.course.specification.SpecificationTemplate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,12 +35,14 @@ public class LessonController {
     }
 
     @GetMapping("/lessons")
-    public ResponseEntity<List<LessonResponseDTO>> findAll(
+    public ResponseEntity<Page<LessonResponseDTO>> findAll(
             @PathVariable UUID courseId,
-            @PathVariable UUID moduleId) {
-        return ResponseEntity.ok(lessonService.findAllByModuleId(courseId, moduleId));
+            @PathVariable UUID moduleId,
+            SpecificationTemplate.LessonSpec spec,
+            @PageableDefault(page = 0, size = 10, sort = "title",
+                    direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(lessonService.findAllByModuleId(courseId, moduleId, spec, pageable));
     }
-
     @GetMapping("/lessons/{lessonId}")
     public ResponseEntity<LessonResponseDTO> findById(
             @PathVariable UUID courseId,

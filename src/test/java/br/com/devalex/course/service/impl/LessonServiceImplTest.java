@@ -16,6 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -125,45 +130,58 @@ public class LessonServiceImplTest {
 
     @Nested
     @DisplayName("findAllByModuleId()")
-    class FindAllByModuleId{
+    class FindAllByModuleId {
 
         @Test
-        @DisplayName("should return a list of lessons when the module belongs to the course")
-        void shouldReturnListOfLessons(){
-            List<Lesson> entities = List.of(lessonEntity());
-            List<LessonResponseDTO> dtos = List.of(lessonResponse());
+        @DisplayName("should return a Page of lessons when module belongs to the course")
+        void shouldReturnPageOfLessons() {
+            Lesson entity = lessonEntity();
+            LessonResponseDTO response = lessonResponse();
+            Specification<Lesson> spec = (root, query, cb) -> null;
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Lesson> page = new PageImpl<>(List.of(entity), pageable, 1);
 
             when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
-            when(lessonRepository.findAllByModuleId(MODULE_ID)).thenReturn(entities);
-            when(lessonMapper.toDTOList(entities)).thenReturn(dtos);
+            when(lessonRepository.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+            when(lessonMapper.toDTO(entity)).thenReturn(response);
 
-            List<LessonResponseDTO> result = lessonService.findAllByModuleId(COURSE_ID, MODULE_ID);
+            Page<LessonResponseDTO> result = lessonService.findAllByModuleId(COURSE_ID, MODULE_ID, spec, pageable);
 
-            assertThat(result).hasSize(1).containsExactlyElementsOf(dtos);
+            assertThat(result.getTotalElements()).isEqualTo(1);
+            assertThat(result.getContent()).hasSize(1);
+            verify(lessonRepository).findAll(any(Specification.class), eq(pageable));
         }
 
         @Test
-        @DisplayName("should return an empty list when the module has no lessons")
-        void shouldReturnEmptyListWhenModuleHasNoLessons(){
+        @DisplayName("should return empty Page when module has no lessons")
+        void shouldReturnEmptyPage() {
+            Specification<Lesson> spec = (root, query, cb) -> null;
+            Pageable pageable = PageRequest.of(0, 10);
+
             when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(true);
-            when(lessonRepository.findAllByModuleId(MODULE_ID)).thenReturn(List.of());
-            when(lessonMapper.toDTOList(List.of())).thenReturn(List.of());
+            when(lessonRepository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(Page.empty(pageable));
 
-            List<LessonResponseDTO> result = lessonService.findAllByModuleId(COURSE_ID, MODULE_ID);
+            Page<LessonResponseDTO> result = lessonService.findAllByModuleId(COURSE_ID, MODULE_ID, spec, pageable);
 
-            assertThat(result).isEmpty();
+            assertThat(result.getTotalElements()).isZero();
+            assertThat(result.getContent()).isEmpty();
+            verifyNoInteractions(lessonMapper);
         }
 
         @Test
-        @DisplayName("should throw ResourceNotFoundException when the module does not belong to the course")
-        void shouldThrowExceptionWhenModuleDoesNotBelongToCourse(){
+        @DisplayName("should throw ResourceNotFoundException when module does not belong to course")
+        void shouldThrowWhenModuleDoesNotBelongToCourse() {
+            Specification<Lesson> spec = (root, query, cb) -> null;
+            Pageable pageable = PageRequest.of(0, 10);
+
             when(moduleRepository.existsByIdAndCourseId(MODULE_ID, COURSE_ID)).thenReturn(false);
 
-            assertThatThrownBy(() -> lessonService.findAllByModuleId(COURSE_ID, MODULE_ID))
+            assertThatThrownBy(() -> lessonService.findAllByModuleId(COURSE_ID, MODULE_ID, spec, pageable))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
 
-            verify(lessonRepository, never()).findAllByModuleId(any());
+            verify(lessonRepository, never()).findAll(any(Specification.class), any(Pageable.class));
         }
     }
 
@@ -252,7 +270,7 @@ public class LessonServiceImplTest {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(String.format(ErrorMessages.MODULE_NOT_IN_COURSE, MODULE_ID, COURSE_ID));
 
-            verify(lessonRepository, never()).delete(any());
+            verify(lessonRepository, never()).delete(any(Lesson.class));
         }
 
         @Test
@@ -266,7 +284,7 @@ public class LessonServiceImplTest {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage(String.format(ErrorMessages.LESSON_NOT_FOUND, LESSON_ID));
 
-            verify(lessonRepository, never()).delete(any());
+            verify(lessonRepository, never()).delete(any(Lesson.class));
         }
     }
 }

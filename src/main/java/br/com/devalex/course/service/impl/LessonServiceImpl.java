@@ -10,11 +10,13 @@ import br.com.devalex.course.model.Module;
 import br.com.devalex.course.repository.LessonRepository;
 import br.com.devalex.course.repository.ModuleRepository;
 import br.com.devalex.course.service.LessonService;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -51,12 +53,19 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public List<LessonResponseDTO> findAllByModuleId(UUID courseId, UUID moduleId) {
+    public Page<LessonResponseDTO> findAllByModuleId(UUID courseId, UUID moduleId, Specification<Lesson> spec, Pageable pageable) {
         if (!moduleRepository.existsByIdAndCourseId(moduleId, courseId)) {
             throw new ResourceNotFoundException(
                     String.format(ErrorMessages.MODULE_NOT_IN_COURSE, moduleId, courseId));
         }
-        return lessonMapper.toDTOList(lessonRepository.findAllByModuleId(moduleId));
+
+        Specification<Lesson> byModuleId = (root, query, cb) ->
+                cb.equal(root.get("module").get("id"), moduleId);
+
+        Specification<Lesson> combined = Specification.where(byModuleId).and(spec);
+
+        return lessonRepository.findAll(combined, pageable)
+                .map(lessonMapper::toDTO);
     }
 
     @Override
