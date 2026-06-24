@@ -1,4 +1,4 @@
-package br.com.devalex.course.dtos.lessons;
+package br.com.devalex.course.dtos.lesson;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

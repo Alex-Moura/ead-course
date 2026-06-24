@@ -3,8 +3,8 @@ package br.com.devalex.course.common;
 
 import br.com.devalex.course.dtos.course.CourseRequestDTO;
 import br.com.devalex.course.dtos.course.CourseResponseDTO;
-import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
-import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
+import br.com.devalex.course.dtos.lesson.LessonRequestDTO;
+import br.com.devalex.course.dtos.lesson.LessonResponseDTO;
 import br.com.devalex.course.dtos.module.ModuleRequestDTO;
 import br.com.devalex.course.dtos.module.ModuleResponseDTO;
 import br.com.devalex.course.enums.CourseLevel;

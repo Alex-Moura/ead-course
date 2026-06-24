@@ -7,7 +7,6 @@ public record ModuleResponseDTO(
         UUID id,
         String title,
         String description,
-//        List<LessonResponseDTO> lessons,
         LocalDateTime createdAt
 ) {
 }

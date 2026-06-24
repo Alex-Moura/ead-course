@@ -1,4 +1,4 @@
-package br.com.devalex.course.dtos.lessons;
+package br.com.devalex.course.dtos.lesson;
 
 import java.util.UUID;
 

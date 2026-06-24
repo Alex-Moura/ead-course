@@ -1,14 +1,19 @@
 package br.com.devalex.course.controller;
 
+import br.com.devalex.course.dtos.module.ModuleResponseDTO;
 import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.service.ModuleService;
+import br.com.devalex.course.specification.SpecificationTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -103,31 +108,69 @@ public class ModuleControllerTest {
         }
     }
 
-//    @Nested
-//    @DisplayName("GET /courses/{courseId}/modules")
-//    class FindAll {
-//
-//        @Test
-//        @DisplayName("should return 200 and list of modules")
-//        void shouldReturn200WithListOfModules() throws Exception {
-//            when(moduleService.findAllByCourseId(COURSE_ID)).thenReturn(List.of(moduleResponse()));
-//
-//            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
-//                    .andExpect(status().isOk())
-//                    .andExpect(jsonPath("$", hasSize(1)))
-//                    .andExpect(jsonPath("$[0].id").value(MODULE_ID.toString()));
-//        }
-//
-//        @Test
-//        @DisplayName("should return 200 and empty list when course has no modules")
-//        void shouldReturn200WithEmptyList() throws Exception {
-//            when(moduleService.findAllByCourseId(COURSE_ID)).thenReturn(List.of());
-//
-//            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
-//                    .andExpect(status().isOk())
-//                    .andExpect(jsonPath("$", hasSize(0)));
-//        }
-//    }
+    @Nested
+    @DisplayName("GET /courses/{courseId}/modules")
+    class FindAll {
+
+        @Test
+        @DisplayName("should return 200 with Page structure")
+        void shouldReturn200WithPageStructure() throws Exception {
+            Page<ModuleResponseDTO> page = new PageImpl<>(
+                    List.of(moduleResponse()), PageRequest.of(0, 10), 1);
+
+            when(moduleService.findAllByCourseId(eq(COURSE_ID), any(SpecificationTemplate.ModuleSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)))
+                    .andExpect(jsonPath("$.content[0].id").value(MODULE_ID.toString()))
+                    .andExpect(jsonPath("$.totalElements").value(1))
+                    .andExpect(jsonPath("$.totalPages").value(1))
+                    .andExpect(jsonPath("$.number").value(0))
+                    .andExpect(jsonPath("$.size").value(10));
+        }
+
+        @Test
+        @DisplayName("should return 200 with empty content when course has no modules")
+        void shouldReturn200WithEmptyContent() throws Exception {
+            when(moduleService.findAllByCourseId(eq(COURSE_ID), any(SpecificationTemplate.ModuleSpec.class), any()))
+                    .thenReturn(Page.empty(PageRequest.of(0, 10)));
+
+            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(0)))
+                    .andExpect(jsonPath("$.totalElements").value(0));
+        }
+
+        @Test
+        @DisplayName("should apply title filter from query param")
+        void shouldApplyTitleFilter() throws Exception {
+            Page<ModuleResponseDTO> page = new PageImpl<>(List.of(moduleResponse()));
+            when(moduleService.findAllByCourseId(eq(COURSE_ID), any(SpecificationTemplate.ModuleSpec.class), any()))
+                    .thenReturn(page);
+
+            mockMvc.perform(get("/courses/{courseId}/modules", COURSE_ID)
+                            .param("title", "Fundamentos"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content", hasSize(1)));
+
+            verify(moduleService).findAllByCourseId(eq(COURSE_ID), any(SpecificationTemplate.ModuleSpec.class), any());
+        }
+
+        @Test
+        @DisplayName("should return 404 when course does not exist")
+        void shouldReturn404WhenCourseDoesNotExist() throws Exception {
+            UUID id = UUID.randomUUID();
+            when(moduleService.findAllByCourseId(eq(id), any(SpecificationTemplate.ModuleSpec.class), any()))
+                    .thenThrow(new ResourceNotFoundException(
+                            String.format(ErrorMessages.COURSE_NOT_FOUND, id)));
+
+            mockMvc.perform(get("/courses/{courseId}/modules", id))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.status").value(404));
+        }
+    }
 
     @Nested
     @DisplayName("GET /courses/{courseId}/modules/{moduleId}")

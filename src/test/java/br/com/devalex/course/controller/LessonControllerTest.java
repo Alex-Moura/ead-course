@@ -1,6 +1,6 @@
 package br.com.devalex.course.controller;
 
-import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
+import br.com.devalex.course.dtos.lesson.LessonResponseDTO;
 import br.com.devalex.course.exceptions.ErrorMessages;
 import br.com.devalex.course.exceptions.custom.ResourceNotFoundException;
 import br.com.devalex.course.service.LessonService;

@@ -1,7 +1,7 @@
 package br.com.devalex.course.service;
 
-import br.com.devalex.course.dtos.lessons.LessonRequestDTO;
-import br.com.devalex.course.dtos.lessons.LessonResponseDTO;
+import br.com.devalex.course.dtos.lesson.LessonRequestDTO;
+import br.com.devalex.course.dtos.lesson.LessonResponseDTO;
 import br.com.devalex.course.model.Lesson;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
