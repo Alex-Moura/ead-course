@@ -14,10 +14,6 @@ public record CourseRequestDTO(
         @Size(min = 3, max = 150, message = "Nome deve ter entre 3 e 150 caracteres")
         String name,
 
-        @Pattern(
-            regexp = "^(http|https)://.*$",
-            message = "URL da imagem deve ser válida"
-        )
         @NotBlank(message = "Imagem é obrigatório")
         String imgUrl,
 
